@@ -109,10 +109,14 @@ class ChatServerProtocol {
 	 * @msg contains the message to send
 	 * return true if the nick is registered in the hash, false otherwise
 	 */
-	private boolean sendMsg(String recipient, String msg) {
-	    if (nicks.containsKey(recipient)) {
-	        ClientConn c = nicks.get(recipient);
+	private boolean sendMsg(String recipient, String msg, PrintWriter out) {
+		System.out.print("Entra a sendMsg!!!\n");
+		if (nicks.containsKey(recipient)) {
+	    	System.out.print("OK!!!\n");
+	    	ClientConn c = nicks.get(recipient);
 	        c.sendMsg(nick + ": " + msg);
+	        out.println("ENVIADO: "+recipient+ " "+nick+":"+msg);
+	        //crear_archivo(recipient, nick + ": " + msg);
 	        return true;
 	    } else {
 	        return false;
@@ -122,7 +126,7 @@ class ChatServerProtocol {
 	/**
 	 * Process a message coming from the client
 	 */
-	public String process(String msg) {
+	public String process(String msg, PrintWriter out) {
 	    if (!isAuthenticated()) 
 	        return authenticate(msg);
 	    //System.out.print("Procesando Mensaje: "+msg);
@@ -134,7 +138,7 @@ class ChatServerProtocol {
 	        	//System.out.print("Mensaje muy corto!!!\n");
 	        	return msg_INVALID;
 	        }
-	        if(sendMsg(msg_parts[1], msg_parts[2])){ 
+	        if(sendMsg(msg_parts[1], msg_parts[2], out)){ 
 	        	log("Mensaje enviado\n");
 	        	return msg_OK;}
 	        
@@ -171,10 +175,10 @@ class ClientConn implements Runnable {
 	        /* loop reading lines from the client which are processed 
 	         * according to our protocol and the resulting response is 
 	         * sent back to the client */
-	        while ((msg = in.readLine()) != null) {
-	        	System.out.print("MENSAJE ENTRANTE: " + msg +"\n");
-	            response = protocol.process(msg);
-	            out.println("SERVER: " + response);
+	    	while ((msg = in.readLine()) != null) {
+	        	System.out.print("MENSAJE ENTRANTE" + msg +"\n");
+	            response = protocol.process(msg, out);
+	            out.println("SERVER: " + response);	            	
 	        }
 	    } catch (IOException e) {
 	        System.err.println(e);
